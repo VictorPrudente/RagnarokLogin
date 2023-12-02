@@ -1,52 +1,75 @@
 package com.ragnaroklogin.entities;
 
 
+import com.ragnaroklogin.entities.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.Serializable;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 @Getter
-@Setter
-@Entity
-@Table(name = "tb_users")
+@Entity(name = "users")
+@Table(name = "users")
 @NoArgsConstructor
 @AllArgsConstructor
-public class User implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class User implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(unique = true)
-    private String username;
+    private String login;
     private String password;
+    private UserRole role;
 
-    @ManyToMany
-    @JoinTable(name = "tb_user_role",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<Role> roles = new HashSet<>();
-
-    public void addRole(Role role){
-        roles.add(role);
+    public User(String login, String password, UserRole role){
+        this.login = login;
+        this.password = password;
+        this.role = role;
     }
 
-    public boolean hasRole(String roleName){
-        for (Role role: roles){
-            if(role.getAuthority().equals(roleName)){
-                return true;
-            }
-        }
-        return false;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (this.role == UserRole.ADMIN)
+            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"),
+                    new SimpleGrantedAuthority("ROLE_USER"));
+
+        else return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+    }
+
+    @Override
+    public String getUsername() {
+        return login;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 
     @Override
@@ -61,4 +84,5 @@ public class User implements Serializable {
     public int hashCode() {
         return Objects.hash(id);
     }
+
 }
