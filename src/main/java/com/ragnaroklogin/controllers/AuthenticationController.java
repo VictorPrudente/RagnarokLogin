@@ -7,6 +7,9 @@ import com.ragnaroklogin.entities.LoginResponseDTO;
 import com.ragnaroklogin.entities.RegisterDTO;
 import com.ragnaroklogin.entities.User;
 import com.ragnaroklogin.repositories.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("auth")
+@Tag(name = "Authentication")
 public class AuthenticationController {
 
     @Autowired
@@ -31,6 +35,24 @@ public class AuthenticationController {
     @Autowired
     private UserRepository userRepository;
 
+    @Operation(
+            description = "'Post' endpoint for login in the application.",
+            summary = "Authenticates user and generates JWT Token",
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Invalid Tokens",
+                            responseCode = "403"
+                    ),
+                    @ApiResponse(
+                            description = "User not Found",
+                            responseCode = "404"
+                    )
+            }
+    )
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.password());
@@ -41,6 +63,20 @@ public class AuthenticationController {
         return ResponseEntity.ok(new LoginResponseDTO(token));
     }
 
+    @Operation(
+            description = "'Post' endpoint for registration",
+            summary = "Register user in the application",
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Bad Request",
+                            responseCode = "400"
+                    )
+            }
+    )
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody @Valid RegisterDTO data) {
         if (this.userRepository.findByLogin(data.login()) != null) {
