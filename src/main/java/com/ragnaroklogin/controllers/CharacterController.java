@@ -1,8 +1,11 @@
 package com.ragnaroklogin.controllers;
 
+import com.ragnaroklogin.entities.User;
 import com.ragnaroklogin.entities.Character;
-import com.ragnaroklogin.entities.CharacterDTO;
+import com.ragnaroklogin.entities.DTO.CharacterDTO;
+import com.ragnaroklogin.entities.DTO.CharacterResponseDTO;
 import com.ragnaroklogin.repositories.CharacterRepository;
+import com.ragnaroklogin.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -16,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @SecurityRequirement(name = "bearerAuth")
@@ -25,6 +27,9 @@ public class CharacterController {
 
     @Autowired
     CharacterRepository characterRepository;
+
+    @Autowired
+    UserRepository userRepository;
 
     @Operation(
             description = "'Get' endpoint for characters",
@@ -65,7 +70,7 @@ public class CharacterController {
             }
     )
     @GetMapping("/characters/{id}")
-    public ResponseEntity<Object> findCharacterById(@PathVariable(value = "id") UUID id) {
+    public ResponseEntity<Object> findCharacterById(@PathVariable(value = "id") String id) {
         Optional<Character> character = characterRepository.findById(id);
         if (character.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("character not found");
@@ -88,11 +93,35 @@ public class CharacterController {
             }
     )
     @PostMapping("/characters")
-    public ResponseEntity<Character> saveCharacter(@RequestBody @Valid CharacterDTO characterDTO) {
+    public ResponseEntity<CharacterResponseDTO> saveCharacter(@RequestBody @Valid CharacterDTO characterDTO) {
+
+        String playerId = characterDTO.player().id();
+        Optional<User> player = userRepository.findById(playerId);
+
         var character = new Character();
         BeanUtils.copyProperties(characterDTO, character);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(characterRepository.save(character));
+        if (player.isPresent()) {
+            character.setPlayer(player.get());
+            Character newCharacter = characterRepository.save(character);
+            CharacterResponseDTO responseDTO = new CharacterResponseDTO(
+                    newCharacter.getName(),
+                    newCharacter.getJob(),
+                    newCharacter.getGender(),
+                    newCharacter.getStrength(),
+                    newCharacter.getAgility(),
+                    newCharacter.getVitality(),
+                    newCharacter.getIntelligence(),
+                    newCharacter.getDexterity(),
+                    newCharacter.getLuck(),
+                    player.get().getId(),
+                    player.get().getLogin()
+            );
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
 
@@ -115,7 +144,7 @@ public class CharacterController {
             }
     )
     @DeleteMapping("/characters/{id}")
-    public ResponseEntity<Object> deleteCharacter(@PathVariable(value = "id") UUID id) {
+    public ResponseEntity<Object> deleteCharacter(@PathVariable(value = "id") String id) {
         Optional<Character> character = characterRepository.findById(id);
         if (character.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Character not found");

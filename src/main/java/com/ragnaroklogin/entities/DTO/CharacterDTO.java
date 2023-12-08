@@ -1,7 +1,6 @@
-package com.ragnaroklogin.entities;
+package com.ragnaroklogin.entities.DTO;
 
 import com.ragnaroklogin.entities.enums.CharacterJob;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -22,6 +21,8 @@ public record CharacterDTO(
 
         @NotNull Short dexterity,
 
-        @NotNull Short luck
+        @NotNull Short luck,
+
+        @NotNull UserDTO player
 ) {
 }

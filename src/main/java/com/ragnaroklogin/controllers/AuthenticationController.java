@@ -2,9 +2,9 @@ package com.ragnaroklogin.controllers;
 
 
 import com.ragnaroklogin.configuration.TokenService;
-import com.ragnaroklogin.entities.AuthenticationDTO;
-import com.ragnaroklogin.entities.LoginResponseDTO;
-import com.ragnaroklogin.entities.RegisterDTO;
+import com.ragnaroklogin.entities.DTO.AuthenticationDTO;
+import com.ragnaroklogin.entities.DTO.LoginResponseDTO;
+import com.ragnaroklogin.entities.DTO.RegisterDTO;
 import com.ragnaroklogin.entities.User;
 import com.ragnaroklogin.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -82,8 +82,8 @@ public class AuthenticationController {
         if (this.userRepository.findByLogin(data.login()) != null) {
             return ResponseEntity.badRequest().build();
         }
-        String encriptedPassword = new BCryptPasswordEncoder().encode(data.password());
-        User newUser = new User(data.login(), encriptedPassword, data.role());
+        String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
+        User newUser = new User(data.login(), encryptedPassword, data.role());
 
         this.userRepository.save(newUser);
 

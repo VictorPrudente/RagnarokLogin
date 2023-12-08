@@ -1,20 +1,17 @@
 package com.ragnaroklogin.entities;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ragnaroklogin.entities.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Getter
 @Entity(name = "users")
@@ -31,6 +28,10 @@ public class User implements UserDetails {
     private String login;
     private String password;
     private UserRole role;
+
+    @OneToMany(mappedBy = "player")
+    @JsonIgnore
+    private List<Character> characters = new ArrayList<>();
 
     public User(String login, String password, UserRole role){
         this.login = login;

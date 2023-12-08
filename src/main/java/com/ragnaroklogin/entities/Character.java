@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Objects;
-import java.util.UUID;
 
 @Entity(name = "characters")
 @Table(name = "characters")
@@ -20,7 +19,7 @@ public class Character {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
     @Column(unique = true)
     private String name;
@@ -40,6 +39,10 @@ public class Character {
     private Short dexterity;
 
     private Short luck;
+
+    @ManyToOne
+    @JoinColumn(name = "player_id")
+    private User player;
 
     @Override
     public boolean equals(Object o) {
